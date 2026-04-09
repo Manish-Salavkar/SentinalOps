@@ -6,8 +6,6 @@ load_dotenv()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class Config:
-    # Database configuration
-    DB_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
     # Trivy configuration
     TRIVY_DUMPS_PATH = os.getenv("TRIVY_DUMPS_PATH")
@@ -18,9 +16,8 @@ class Config:
     SONAR_TOKEN = os.getenv("SONAR_TOKEN", "sonarqube_token")
 
     # GitHub Actions configuration
-    GITHUB_SECRET = os.getenv("GITHUB_SECRET").strip()
+    GITHUB_SECRET = os.getenv("GITHUB_SECRET")
+    GITHUB_TOKEN = os.getenv("GITHUB_PTOKEN")
 
-    TRIVY_DUMPS_DIR = (
-    TRIVY_DUMPS_PATH if os.path.isabs(TRIVY_DUMPS_PATH)
-    else os.path.join(BASE_DIR, TRIVY_DUMPS_PATH)
-)
+    MONGO_URI = os.getenv("MONGO_URI")
+

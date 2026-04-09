@@ -1,26 +1,12 @@
-# database.py
+# app/database.py
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from motor.motor_asyncio import AsyncIOMotorClient
+from app.config import Config
 
-DATABASE_URL = "sqlite:///./test.db"  
+client = AsyncIOMotorClient(Config.MONGO_URI)
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+db = client["sentinel_ops"]
 
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
-
-Base = declarative_base()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+trivy_collection = db["trivy"]
+sonarqube_collection = db["sonarqube"]
+github_collection = db["github"]
