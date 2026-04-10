@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from app.config import Config
+from app.database import db
 import os
 
 def extract_trivy_vulnerabilities(data: dict):
@@ -44,31 +45,19 @@ def extract_trivy_vulnerabilities(data: dict):
 
     return output
 
-trivy_path = Config.TRIVY_DUMPS_DIR
-print("Trivy dumps path:", trivy_path)
 
-files = [
-    f for f in os.listdir(trivy_path)
-    if f.endswith(".json")
-]
 
-if not files:
-    raise FileNotFoundError("No Trivy JSON files found")
+async def ingest_trivy_scan(payload: dict):
+    run_id = payload.get("pipeline", {}).get("run_id")
+    await db.trivy.insert_one({
+        "run_id": run_id,
+        "data": payload
+    })
+    print(f"Ingested Trivy scan for run_id: {run_id}")
 
-# pick latest file
-latest_file = max(
-    files,
-    key=lambda f: os.path.getmtime(os.path.join(trivy_path, f))
-)
-
-latest_file_path = os.path.join(trivy_path, latest_file)
-
-print(f"Using file: {latest_file_path}")
-
-# read + process
-with open(latest_file_path) as f:
-    trivy_data = json.load(f)
-
-vulnerabilities = extract_trivy_vulnerabilities(trivy_data)
-
-print(json.dumps(vulnerabilities, indent=2))
+async def ingest_secrets_scan(payload: dict, run_id: str):
+    await db.secrets.insert_one({
+        "run_id": run_id,
+        "data": payload
+    })
+    print(f"Ingested Secrets scan for run_id: {run_id}")

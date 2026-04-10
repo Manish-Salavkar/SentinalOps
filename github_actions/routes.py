@@ -113,6 +113,8 @@ async def get_pipeline_run(run_id: int):
     head_sha = workflow.get("head_sha")
 
     trivy_doc = await db.trivy.find_one({"run_id": str(run_id)})
+    secrets_doc = await db.secrets.find_one({"run_id": str(run_id)})
+    jobs_doc = await db.jobs_collection.find_one({"run_id": run_id})
     vulnerabilities = extract_trivy_vulns(trivy_doc)
 
     sonarqube_doc = None
@@ -132,5 +134,7 @@ async def get_pipeline_run(run_id: int):
         "github": clean(github_doc),
         "trivy": vulnerabilities,
         "sonarqube": clean(sonarqube_doc),
+        "secrets": clean(secrets_doc),
+        "jobs": clean(jobs_doc),
         "head_sha": head_sha
     }

@@ -4,6 +4,7 @@ import requests
 import asyncio
 from app.github_actions.queue import jobs_queue
 from app.config import Config
+from app.database import db
 
 def load_json_file():
     with open("app/github_actions/payload.json", "r") as file:
@@ -51,6 +52,7 @@ async def jobs_worker(jobs_url):
                 job = jobs_data["jobs"][0]
 
                 if job["status"] == "completed":
+                    await db.jobs_collection.insert_one(job)
                     print("Job completed. Stopping worker.")
                     break
 

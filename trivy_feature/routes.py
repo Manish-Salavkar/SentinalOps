@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+from app.trivy_feature import utils
 from app.config import Config
 from app.database import db
 import requests
@@ -9,17 +10,42 @@ router = APIRouter(
     tags=["Trivy Scans"]
 )
 
+# @router.post("/ingest")
+# async def ingest_trivy_scan(payload: dict):
+#     run_id = payload.get("pipeline", {}).get("run_id")
+#     await db.trivy.insert_one({
+#         "run_id": run_id,
+#         "data": payload
+#     })
+
+#     return {
+#         "status": "stored",
+#         "run_id": run_id
+#     }
+
+
 @router.post("/ingest")
-async def ingest_trivy_scan(payload: dict):
+async def ingest_combined(payload: dict):
     run_id = payload.get("pipeline", {}).get("run_id")
-    await db.trivy.insert_one({
-        "run_id": run_id,
-        "data": payload
-    })
+
+    scans = payload.get("scans", {})
+
+    trivy_data = scans.get("trivy")
+    secrets_data = scans.get("secrets")
+
+    if trivy_data:
+        await utils.ingest_trivy_scan(trivy_data)
+
+    if secrets_data:
+        await utils.ingest_secrets_scan(secrets_data, run_id)
 
     return {
         "status": "stored",
-        "run_id": run_id
+        "run_id": run_id,
+        "ingested": {
+            "trivy": trivy_data is not None,
+            "secrets": secrets_data is not None
+        }
     }
 
 
