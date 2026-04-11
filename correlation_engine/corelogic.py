@@ -1,4 +1,4 @@
-def evaluate_security(sonar, trivy, secrets):
+async def evaluate_security(sonar, trivy, secrets):
     reasons = []
     risk = 0
 

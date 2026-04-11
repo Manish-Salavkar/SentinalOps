@@ -1,4 +1,4 @@
-def parse_secrets(data):
+async def parse_secrets(data):
     result = {
         "tool": "secrets",
         "summary": {
@@ -9,7 +9,7 @@ def parse_secrets(data):
         },
         "findings": []
     }
-
+    print(data)
     findings = data.get("data", [])
 
     for f in findings:

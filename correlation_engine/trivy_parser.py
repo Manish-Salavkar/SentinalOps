@@ -1,4 +1,4 @@
-def parse_trivy(data):
+async def parse_trivy(data):
     result = {
         "tool": "trivy",
         "summary": {

@@ -5,8 +5,9 @@ import hashlib
 from app.config import Config
 from app.github_actions.utils import get_jobs, jobs_worker, extract_trivy_vulns
 from app.github_actions.queue import jobs_queue
-from app.database import db
+from app.database import db, clean
 import asyncio
+from app.correlation_engine.main_engine import risk_score
 
 
 router = APIRouter(prefix="/github-actions", tags=["GitHub Actions"])
@@ -123,18 +124,16 @@ async def get_pipeline_run(run_id: int):
             {"data.trigger.revision": head_sha}
         )
 
-    def clean(doc):
-        if not doc:
-            return None
-        doc.pop("_id", None)
-        return doc
+    risk = await risk_score(trivy_raw=trivy_doc, secrets_raw=secrets_doc, sonarqube_raw=sonarqube_doc)
+    print(risk)
+
 
     return {
         "run_id": run_id,
-        "github": clean(github_doc),
+        "github": await clean(github_doc),
         "trivy": vulnerabilities,
-        "sonarqube": clean(sonarqube_doc),
-        "secrets": clean(secrets_doc),
-        "jobs": clean(jobs_doc),
+        "sonarqube": await clean(sonarqube_doc),
+        "secrets": await clean(secrets_doc),
+        "jobs": await clean(jobs_doc),
         "head_sha": head_sha
     }

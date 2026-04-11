@@ -12,3 +12,10 @@ sonarqube_collection = db["sonarqube"]
 github_collection = db["github"]
 secrets_collection = db["secrets"]
 jobs_collection = db["jobs"]
+
+
+async def clean(doc):
+        if not doc:
+            return None
+        doc.pop("_id", None)
+        return doc

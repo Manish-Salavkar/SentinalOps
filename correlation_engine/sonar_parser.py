@@ -1,4 +1,4 @@
-def parse_sonarqube(data):
+async def parse_sonarqube(data):
     result = {
         "tool": "sonarqube",
         "summary": {},
