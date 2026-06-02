@@ -1,3 +1,4 @@
+# app/github_actions/routes.py
 from fastapi import APIRouter, Request, Header, HTTPException, WebSocket
 from datetime import datetime
 import hmac
@@ -48,8 +49,14 @@ async def github_webhook(
         processed_runs.add(run_id)
         asyncio.create_task(jobs_worker(jobs_url))
 
+
+    
+    
+
     # with open("payload.json", "w") as f:
     #     json.dump(payload, f, indent=4)
+
+
     if status == "completed":
         await db.github.insert_one({
             "run_id": run_id,
@@ -65,6 +72,8 @@ async def github_webhook(
 @router.websocket("/ws/jobs")
 async def websocket_jobs(ws: WebSocket):
     await ws.accept()
+
+    await ws.send_json({"msg": "connected"})
 
     try:
         while True:
@@ -125,15 +134,17 @@ async def get_pipeline_run(run_id: int):
         )
 
     risk = await risk_score(trivy_raw=trivy_doc, secrets_raw=secrets_doc, sonarqube_raw=sonarqube_doc)
-    print(risk)
+    # risk = await risk_score(run_id=run_id)
 
+    cleaned_secrets = await clean(secrets_doc)
 
     return {
         "run_id": run_id,
         "github": await clean(github_doc),
         "trivy": vulnerabilities,
         "sonarqube": await clean(sonarqube_doc),
-        "secrets": await clean(secrets_doc),
+        "secrets": cleaned_secrets.get("data", {}).get("data", []),
         "jobs": await clean(jobs_doc),
-        "head_sha": head_sha
+        "head_sha": head_sha,
+        "risk_score": risk
     }

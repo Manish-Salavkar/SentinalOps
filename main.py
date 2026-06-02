@@ -8,13 +8,12 @@ app = FastAPI(title="DevSecOps Vulnerability Dashboard")
 
 origins = [
     "http://localhost:5173",
+    "https://app.manishsalavkar.me"
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # or ["*"] for testing
-    allow_credentials=True,
-    allow_methods=["*"],
     allow_headers=["*"],
 )
 

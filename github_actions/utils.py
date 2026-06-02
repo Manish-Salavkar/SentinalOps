@@ -22,20 +22,47 @@ def load_json_file():
 #     print(f"Failed to retrieve data. Status code: {request}")
 
 
+# async def get_jobs(jobs_url):
+#     headers = {
+#         "Authorization": f"Bearer {Config.GITHUB_TOKEN}",
+#         "Accept": "application/vnd.github+json"
+#     }
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(jobs_url, headers=headers)
+
+#         if response.status_code == 200:
+#             return response.json()
+#         else:
+#             print("Failed: ", response.status_code)
+#             print("Response: ", response.text)
+#             return None
+
 async def get_jobs(jobs_url):
     headers = {
         "Authorization": f"Bearer {Config.GITHUB_TOKEN}",
         "Accept": "application/vnd.github+json"
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.get(jobs_url, headers=headers)
 
-        if response.status_code == 200:
+    timeout = httpx.Timeout(30.0)
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.get(jobs_url, headers=headers)
+
+            response.raise_for_status()
             return response.json()
-        else:
-            print("Failed: ", response.status_code)
-            print("Response: ", response.text)
-            return None
+
+    except httpx.ConnectTimeout:
+        print("GitHub API connection timeout")
+        return None
+
+    except httpx.HTTPStatusError as e:
+        print(f"GitHub HTTP error: {e.response.status_code}")
+        return None
+
+    except Exception as e:
+        print(f"Unexpected error in get_jobs: {e}")
+        return None
         
 
 
@@ -81,3 +108,5 @@ def extract_trivy_vulns(trivy_doc):
             })
 
     return vulns_list
+
+

@@ -1,3 +1,4 @@
+# app/trivy_feature/routes.py
 from fastapi import APIRouter, Request
 from app.trivy_feature import utils
 from app.config import Config
@@ -9,19 +10,6 @@ router = APIRouter(
     prefix="/api/trivy",
     tags=["Trivy Scans"]
 )
-
-# @router.post("/ingest")
-# async def ingest_trivy_scan(payload: dict):
-#     run_id = payload.get("pipeline", {}).get("run_id")
-#     await db.trivy.insert_one({
-#         "run_id": run_id,
-#         "data": payload
-#     })
-
-#     return {
-#         "status": "stored",
-#         "run_id": run_id
-#     }
 
 
 @router.post("/ingest")
@@ -39,6 +27,7 @@ async def ingest_combined(payload: dict):
     if secrets_data:
         await utils.ingest_secrets_scan(secrets_data, run_id)
 
+    print(f"Ingested combined scan for run_id: {run_id}, trivy: {trivy_data is not None}, secrets: {secrets_data is not None}")
     return {
         "status": "stored",
         "run_id": run_id,
@@ -105,6 +94,7 @@ async def ingest_sonarqube_scan(request: Request):
         "data": deep_scan_data,
     })
 
+    print(f"Ingested SonarQube scan for revision: {revision}, run_id: {run_id}")
     return {
         "status": "stored",
         "run_id": run_id

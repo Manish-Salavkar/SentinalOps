@@ -1,4 +1,5 @@
 async def parse_secrets(data):
+
     result = {
         "tool": "secrets",
         "summary": {
@@ -9,10 +10,26 @@ async def parse_secrets(data):
         },
         "findings": []
     }
-    print(data)
-    findings = data.get("data", [])
+
+    if not data:
+        return result
+
+    # print("RAW DATA:", data)
+    # print("TYPE:", type(data))
+
+    findings = data.get("data", {}).get("data", [])
+
+    # print("FINDINGS:", findings)
+
+    if not isinstance(findings, list):
+        print("Findings not list, skipping")
+        return result
 
     for f in findings:
+        if not isinstance(f, dict):
+            print(f"Skipping invalid entry: {f}")
+            continue
+
         severity = f.get("severity", "LOW")
 
         result["summary"]["total"] += 1
